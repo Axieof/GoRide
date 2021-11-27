@@ -114,6 +114,7 @@ func main() {
 	e := echo.New()
 
 	//Routes
+	//Send GetRequest in form-data with keys 'Username' and 'Password'
 	e.GET("/login/api/passenger", GetPassengerLogin)
 
 	e.Logger.Fatal(e.Start(":8000"))
