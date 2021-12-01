@@ -2,7 +2,9 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -11,12 +13,17 @@ import (
 )
 
 type LoginInformation struct {
-	ID             int
-	Username       string
-	Password       string
-	AccountType    string
-	AccountStatus  string
-	AccountUpdated time.Time
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type AccountDetails struct {
+	ID             int       `json:"id"`
+	Username       string    `json:"username"`
+	Password       string    `json:"password"`
+	AccountType    string    `json:"accounttype"`
+	AccountStatus  string    `json:"accountstatus"`
+	AccountUpdated time.Time `json:"accountupdated"`
 }
 
 func OpenPassengersDB() sql.DB {
@@ -72,7 +79,7 @@ func OpenTripsDB() sql.DB {
 }
 
 func CheckPassenger(db *sql.DB, username string, password string) bool {
-	var LoginInfo LoginInformation
+	var LoginInfo AccountDetails
 	Query := "SELECT * FROM GoRide_Logins.LoginInformation WHERE Username = '" + username + "' AND Password = '" + password + "'"
 	fmt.Println(Query)
 	results := db.QueryRow(Query)
@@ -89,22 +96,26 @@ func CheckPassenger(db *sql.DB, username string, password string) bool {
 	}
 }
 
-//e.GET("/login/api/passenger", GetPassengerLogin)
-func GetPassengerLogin(c echo.Context) error {
+//e.Post("/login/api", Checkuser)
+func Checkuser(c echo.Context) error {
 	// Get name and password
-	username := c.FormValue("username")
-	password := c.FormValue("password")
+	LoginDetails := LoginInformation{}
+	defer c.Request().Body.Close()
+	err := json.NewDecoder(c.Request().Body).Decode(&LoginDetails)
 
-	fmt.Println(username, password)
-
-	LoginDB := OpenLoginsDB()
-
-	passengerExists := CheckPassenger(&LoginDB, username, password)
-
-	if passengerExists {
-		return c.String(http.StatusOK, "true")
+	if err != nil {
+		log.Fatalf("Failed reading the request body %s", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	} else {
-		return c.String(http.StatusNotAcceptable, "false")
+		LoginDB := OpenLoginsDB()
+
+		passengerExists := CheckPassenger(&LoginDB, LoginDetails.Username, LoginDetails.Password)
+
+		if passengerExists {
+			return c.String(http.StatusOK, "true")
+		} else {
+			return c.String(http.StatusNotAcceptable, "false")
+		}
 	}
 
 }
@@ -114,8 +125,8 @@ func main() {
 	e := echo.New()
 
 	//Routes
-	//Send GetRequest in form-data with keys 'Username' and 'Password'
-	e.GET("/login/api/passenger", GetPassengerLogin)
+	//Send Get Request in form-data with keys 'Username' and 'Password'
+	e.POST("/api/checkuser", Checkuser)
 
-	e.Logger.Fatal(e.Start(":8000"))
+	e.Logger.Fatal(e.Start(":8001"))
 }
