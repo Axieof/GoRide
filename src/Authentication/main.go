@@ -41,6 +41,7 @@ func requestCheck(username string, password string) string {
 
 //e.GET("/login/api", GetLogin)
 func GetLogin(c echo.Context) error {
+	var reply string
 
 	LoginDetails := LoginInformation{}
 	defer c.Request().Body.Close()
@@ -51,11 +52,11 @@ func GetLogin(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	} else {
 		//If error is nil, check if username and  password exists in database.
-		reply := requestCheck(LoginDetails.Username, LoginDetails.Password)
+		reply = requestCheck(LoginDetails.Username, LoginDetails.Password)
 		log.Printf(reply)
 	}
 
-	return c.String(http.StatusOK, "Login Details Received!")
+	return c.String(http.StatusOK, reply)
 }
 
 func main() {

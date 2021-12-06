@@ -78,8 +78,9 @@ func OpenTripsDB() sql.DB {
 	return *Tripsdb
 }
 
-func CheckPassenger(db *sql.DB, username string, password string) bool {
+func CheckAccount(db *sql.DB, username string, password string) [2]string {
 	var LoginInfo AccountDetails
+	var returnResult [2]string
 	Query := "SELECT * FROM GoRide_Logins.LoginInformation WHERE Username = '" + username + "' AND Password = '" + password + "'"
 	fmt.Println(Query)
 	results := db.QueryRow(Query)
@@ -87,10 +88,15 @@ func CheckPassenger(db *sql.DB, username string, password string) bool {
 	switch err := results.Scan(&LoginInfo.ID, &LoginInfo.Username, &LoginInfo.Password, &LoginInfo.AccountType, &LoginInfo.AccountStatus, &LoginInfo.AccountUpdated); err {
 	case sql.ErrNoRows:
 		db.Close()
-		return false
+		returnResult[0] = "false"
+		returnResult[1] = "NULL"
+		return returnResult
 	case nil:
 		db.Close()
-		return true
+		log.Printf("Row Get!")
+		returnResult[0] = "true"
+		returnResult[1] = LoginInfo.AccountType
+		return returnResult
 	default:
 		panic(err)
 	}
@@ -109,12 +115,14 @@ func Checkuser(c echo.Context) error {
 	} else {
 		LoginDB := OpenLoginsDB()
 
-		passengerExists := CheckPassenger(&LoginDB, LoginDetails.Username, LoginDetails.Password)
+		passengerExists := CheckAccount(&LoginDB, LoginDetails.Username, LoginDetails.Password)
+		log.Println(passengerExists)
 
-		if passengerExists {
-			return c.String(http.StatusOK, "true")
+		if passengerExists[0] == "true" {
+			log.Printf(passengerExists[0])
+			return c.String(http.StatusOK, passengerExists[1])
 		} else {
-			return c.String(http.StatusNotAcceptable, "false")
+			return c.String(http.StatusNotAcceptable, passengerExists[0])
 		}
 	}
 
