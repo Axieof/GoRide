@@ -1,12 +1,25 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/labstack/echo/v4"
 )
+
+type Passenger struct {
+	Firstname     string `json: firstname`
+	Lastname      string `json: lastname`
+	ContactNumber string `json: contactnumber`
+	EmailAddress  string `json: emailaddress`
+}
 
 func ServeHeader(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -16,20 +29,52 @@ func ServeHeader(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func GetPassenger() {
-
+func GetPassenger() string {
+	return "Lol"
 }
 
-func CreatePassenger() {
+func CreatePassenger(c echo.Context) error {
+	PassengerDetails := Passenger{}
 
+	defer c.Request().Body.Close()
+	err := json.NewDecoder(c.Request().Body).Decode(&PassengerDetails)
+
+	if err != nil {
+		log.Fatalf("Failed reading the request body %s", err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	} else {
+		postBody, _ := json.Marshal(map[string]string{
+			"firstname":     PassengerDetails.Firstname,
+			"lastname":      PassengerDetails.Lastname,
+			"contactnumber": PassengerDetails.ContactNumber,
+			"emailaddress":  PassengerDetails.EmailAddress,
+		})
+
+		responsebody := bytes.NewBuffer(postBody)
+
+		resp, err := http.Post("http://localhost:8001/api/V1/database/create", "application/json", responsebody)
+
+		if err != nil {
+			log.Fatalf("An error occured %s", err)
+		}
+
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		sb := string(body)
+		return c.String(http.StatusOK, sb)
+	}
 }
 
-func DeletePassenger() {
-
+func DeletePassenger() string {
+	return "Lol"
 }
 
-func UpdatePassenger() {
-
+func UpdatePassenger() string {
+	return "Lol"
 }
 
 func main() {
@@ -44,10 +89,10 @@ func main() {
 
 	//Routes
 	//Listen to POST Request with keys 'Username' and 'Password'
-	g.GET("/passenger", GetPassenger)
+	//g.GET("/passenger", GetPassenger)
 	g.POST("/passenger", CreatePassenger)
-	g.DELETE("/passenger", DeletePassenger)
-	g.PUT("/passenger", UpdatePassenger)
+	//g.DELETE("/passenger", DeletePassenger)
+	//g.PUT("/passenger", UpdatePassenger)
 
 	go func() {
 		if err := e.Start(":8002"); err != nil && err != http.ErrServerClosed {

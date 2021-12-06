@@ -28,6 +28,54 @@ type AccountDetails struct {
 	AccountStatus  string    `json:"accountstatus"`
 	AccountUpdated time.Time `json:"accountupdated"`
 }
+type Passenger struct {
+	Firstname     string `json: firstname`
+	Lastname      string `json: lastname`
+	ContactNumber string `json: contactnumber`
+	EmailAddress  string `json: emailaddress`
+}
+
+func InsertPassenger(c echo.Context) error {
+	PassengerDetails := Passenger{}
+
+	defer c.Request().Body.Close()
+	err := json.NewDecoder(c.Request().Body).Decode(&PassengerDetails)
+
+	if err != nil {
+		log.Fatalf("Failed reading the request body %s", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	} else {
+		//Insert Passenger Record
+		PassengerDB := OpenPassengersDB()
+
+		Query := "INSERT INTO Passenger(FirstName, LastName, ContactNumber, EmailAddress, AccountStatus, AccountUpdated) VALUES (?, ?, ?, ?, ?, ?)"
+
+		ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancelFunc()
+		stmt, err := PassengerDB.PrepareContext(ctx, Query)
+
+		if err != nil {
+			log.Printf("Error %s when preparing SQL statement", err)
+			return err
+		}
+		defer stmt.Close()
+
+		var datetime = time.Now()
+		res, err := stmt.ExecContext(ctx, PassengerDetails.Firstname, PassengerDetails.Lastname, PassengerDetails.ContactNumber, PassengerDetails.EmailAddress, "Active", datetime)
+		if err != nil {
+			log.Printf("Error %s when isnerting row into passenger table", err)
+			return err
+		}
+		rows, err := res.RowsAffected()
+		if err != nil {
+			log.Printf("Error %s when finding rows affected", err)
+			return err
+		}
+		log.Printf("%d Passenger Created", rows)
+		return c.String(http.StatusAccepted, "Passenger Created!")
+	}
+
+}
 
 func OpenPassengersDB() sql.DB {
 	//Open Passengers Database
@@ -152,6 +200,7 @@ func main() {
 	//Routes
 	//Send Get Request in form-data with keys 'Username' and 'Password'
 	g.POST("/checkuser", Checkuser)
+	g.POST("/database/create", InsertPassenger)
 
 	go func() {
 		if err := e.Start(":8001"); err != nil && err != http.ErrServerClosed {
