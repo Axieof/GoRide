@@ -2,10 +2,14 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -23,7 +27,7 @@ func requestCheck(username string, password string) string {
 
 	responsebody := bytes.NewBuffer(postBody)
 
-	resp, err := http.Post("http://localhost:8001/api/checkuser", "application/json", responsebody)
+	resp, err := http.Post("http://localhost:8001/api/V1/checkuser", "application/json", responsebody)
 
 	if err != nil {
 		log.Fatalf("An error occured %s", err)
@@ -59,13 +63,42 @@ func GetLogin(c echo.Context) error {
 	return c.String(http.StatusOK, reply)
 }
 
+func ServeHeader(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		c.Response().Header().Set(echo.HeaderServer, "GoRide/1.0")
+
+		return next(c)
+	}
+}
+
 func main() {
 	//Create Echo HTTP Server
 	e := echo.New()
 
+	//Use custom server header dispalying applciation version
+	e.Use(ServeHeader)
+
+	//Group API version one routes together
+	g := e.Group("/api/V1")
+
 	//Routes
 	//Listen to POST Request with keys 'Username' and 'Password'
-	e.POST("/api/login", GetLogin)
+	g.POST("/login", GetLogin)
 
-	e.Logger.Fatal(e.Start(":8000"))
+	go func() {
+		if err := e.Start(":8000"); err != nil && err != http.ErrServerClosed {
+			e.Logger.Fatal("Shutting down the server")
+		}
+	}()
+
+	//Gracefully shutdown the server if an error happens
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {
+		e.Logger.Fatal(err)
+	}
+
 }
