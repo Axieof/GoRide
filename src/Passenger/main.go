@@ -52,7 +52,7 @@ func CreatePassenger(c echo.Context) error {
 
 		responsebody := bytes.NewBuffer(postBody)
 
-		resp, err := http.Post("http://localhost:8001/api/V1/database/create", "application/json", responsebody)
+		resp, err := http.Post("http://localhost:8001/api/V1/database/createpassenger", "application/json", responsebody)
 
 		if err != nil {
 			log.Fatalf("An error occured %s", err)

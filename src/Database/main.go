@@ -35,6 +35,15 @@ type Passenger struct {
 	EmailAddress  string `json: emailaddress`
 }
 
+type Driver struct {
+	Firstname            string `json: firstname`
+	Lastname             string `json: lastname`
+	ContactNumber        string `json: contactnumber`
+	EmailAddress         string `json: emailaddress`
+	DriverIdentification string `json: driverid`
+	LicenseNumber        string `json: licensenumebr`
+}
+
 func InsertPassenger(c echo.Context) error {
 	PassengerDetails := Passenger{}
 
@@ -73,6 +82,49 @@ func InsertPassenger(c echo.Context) error {
 		}
 		log.Printf("%d Passenger Created", rows)
 		return c.String(http.StatusAccepted, "Passenger Created!")
+	}
+
+}
+
+func InsertDriver(c echo.Context) error {
+	DriverDetails := Driver{}
+
+	defer c.Request().Body.Close()
+	err := json.NewDecoder(c.Request().Body).Decode(&DriverDetails)
+	log.Printf(DriverDetails.DriverIdentification)
+
+	if err != nil {
+		log.Fatalf("Failed reading the request body %s", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	} else {
+		//Insert Driver Record
+		DriverDB := OpenDriversDB()
+
+		Query := "INSERT INTO Driver(FirstName, LastName, ContactNumber, EmailAddress, DriverIdentification, LicenseNumber, AccountStatus, AccountUpdated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+
+		ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancelFunc()
+		stmt, err := DriverDB.PrepareContext(ctx, Query)
+
+		if err != nil {
+			log.Printf("Error %s when preparing SQL statement", err)
+			return err
+		}
+		defer stmt.Close()
+
+		var datetime = time.Now()
+		res, err := stmt.ExecContext(ctx, DriverDetails.Firstname, DriverDetails.Lastname, DriverDetails.ContactNumber, DriverDetails.EmailAddress, DriverDetails.DriverIdentification, DriverDetails.LicenseNumber, "Active", datetime)
+		if err != nil {
+			log.Printf("Error %s when isnerting row into passenger table", err)
+			return err
+		}
+		rows, err := res.RowsAffected()
+		if err != nil {
+			log.Printf("Error %s when finding rows affected", err)
+			return err
+		}
+		log.Printf("%d Driver Created", rows)
+		return c.String(http.StatusAccepted, "Driver Created!")
 	}
 
 }
@@ -200,7 +252,8 @@ func main() {
 	//Routes
 	//Send Get Request in form-data with keys 'Username' and 'Password'
 	g.POST("/checkuser", Checkuser)
-	g.POST("/database/create", InsertPassenger)
+	g.POST("/database/createpassenger", InsertPassenger)
+	g.POST("/database/createdriver", InsertDriver)
 
 	go func() {
 		if err := e.Start(":8001"); err != nil && err != http.ErrServerClosed {
