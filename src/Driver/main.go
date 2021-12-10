@@ -17,6 +17,7 @@ import (
 type Driver struct {
 	Firstname            string `json: firstname`
 	Lastname             string `json: lastname`
+	Password             string `json: password`
 	ContactNumber        string `json: contactnumber`
 	EmailAddress         string `json: emailaddress`
 	DriverIdentification string `json: driveridentification`
@@ -34,42 +35,64 @@ func ServeHeader(next echo.HandlerFunc) echo.HandlerFunc {
 func CreateDriver(c echo.Context) error {
 	DriverDetails := Driver{}
 
-	defer c.Request().Body.Close()
-	err := json.NewDecoder(c.Request().Body).Decode(&DriverDetails)
+	log.Printf("Details posted to driver")
+
+	DriverDetails = Driver{
+		Password:             c.FormValue("password"),
+		Firstname:            c.FormValue("firstname"),
+		Lastname:             c.FormValue("lastname"),
+		ContactNumber:        c.FormValue("mobilenumber"),
+		EmailAddress:         c.FormValue("emailaddress"),
+		DriverIdentification: c.FormValue("idnumber"),
+		LicenseNumber:        c.FormValue("carlicensenumber"),
+	}
+
+	log.Printf("Details are %s", DriverDetails.Firstname)
 
 	log.Printf(DriverDetails.DriverIdentification)
 	log.Printf(DriverDetails.LicenseNumber)
 
+	//if err != nil {
+	//log.Fatalf("Failed reading the request body %s", err)
+	//return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	//} else {
+	//postBody, _ := json.Marshal(map[string]string{
+	//	"firstname":            DriverDetails.Firstname,
+	//	"lastname":             DriverDetails.Lastname,
+	//	"password":             DriverDetails.Password,
+	//	"contactnumber":        DriverDetails.ContactNumber,
+	//	"emailaddress":         DriverDetails.EmailAddress,
+	//	"driveridentification": DriverDetails.DriverIdentification,
+	//	"licensenumber":        DriverDetails.LicenseNumber,
+	//})
+
+	postBody, _ := json.Marshal(map[string]string{
+		"firstname":            DriverDetails.Firstname,
+		"lastname":             DriverDetails.Lastname,
+		"password":             DriverDetails.Password,
+		"contactnumber":        DriverDetails.ContactNumber,
+		"emailaddress":         DriverDetails.EmailAddress,
+		"driveridentification": DriverDetails.DriverIdentification,
+		"licensenumber":        DriverDetails.LicenseNumber,
+	})
+
+	responsebody := bytes.NewBuffer(postBody)
+
+	resp, err := http.Post("http://localhost:8001/api/V1/database/createdriver", "application/json", responsebody)
+
 	if err != nil {
-		log.Fatalf("Failed reading the request body %s", err)
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	} else {
-		postBody, _ := json.Marshal(map[string]string{
-			"firstname":            DriverDetails.Firstname,
-			"lastname":             DriverDetails.Lastname,
-			"contactnumber":        DriverDetails.ContactNumber,
-			"emailaddress":         DriverDetails.EmailAddress,
-			"driveridentification": DriverDetails.DriverIdentification,
-			"licensenumber":        DriverDetails.LicenseNumber,
-		})
-
-		responsebody := bytes.NewBuffer(postBody)
-
-		resp, err := http.Post("http://localhost:8001/api/V1/database/createdriver", "application/json", responsebody)
-
-		if err != nil {
-			log.Fatalf("An error occured %s", err)
-		}
-
-		defer resp.Body.Close()
-
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		sb := string(body)
-		return c.String(http.StatusOK, sb)
+		log.Fatalf("An error occured %s", err)
 	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	sb := string(body)
+	return c.String(http.StatusOK, sb)
+
 }
 
 func main() {

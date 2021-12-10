@@ -31,6 +31,7 @@ type AccountDetails struct {
 type Passenger struct {
 	Firstname     string `json: firstname`
 	Lastname      string `json: lastname`
+	Password      string `json: password`
 	ContactNumber string `json: contactnumber`
 	EmailAddress  string `json: emailaddress`
 }
@@ -38,9 +39,10 @@ type Passenger struct {
 type Driver struct {
 	Firstname            string `json: firstname`
 	Lastname             string `json: lastname`
+	Password             string `json: password`
 	ContactNumber        string `json: contactnumber`
 	EmailAddress         string `json: emailaddress`
-	DriverIdentification string `json: driverid`
+	DriverIdentification string `json: driveridentification`
 	LicenseNumber        string `json: licensenumebr`
 }
 
@@ -91,7 +93,7 @@ func InsertDriver(c echo.Context) error {
 
 	defer c.Request().Body.Close()
 	err := json.NewDecoder(c.Request().Body).Decode(&DriverDetails)
-	log.Printf(DriverDetails.DriverIdentification)
+	log.Printf(DriverDetails.Firstname)
 
 	if err != nil {
 		log.Fatalf("Failed reading the request body %s", err)
