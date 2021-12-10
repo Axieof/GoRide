@@ -118,18 +118,19 @@
       border-style: solid;
       border-width: 1px;
     }</style>
-  <title>Sign in</title>
+  <title>Register</title>
 </head>
 
 <body>
   <div class="main">
     <p class="sign" align="center">Register</p>
-    <form class="form1">
-      <input class="un " type="text" align="center" placeholder="Firstname">
-      <input class="un " type="text" align="center" placeholder="Lastname">
-      <input class="un " type="tel" align="center" placeholder="Phone Number">
-      <input class="un " type="email" align="center" placeholder="Email Address">
-      <a class="submit" align="center" href="http://localhost:9000/">Sign in</a>
+    <form class="form1" method="POST" action="http://localhost:8002/api/V1/passenger">
+      <input class="un " type="text" name="firstname" align="center" placeholder="firstname">
+      <input class="un " type="text" name="lastname" align="center" placeholder="lastname">
+      <input class="un " type="tel" name="mobilenumber" align="center" placeholder="mobilenumber">
+      <input class="un " type="email" name="emailaddress" align="center" placeholder="emailaddress">
+      <input class="submit" type="submit" value="Register">
+    </form>
                 
     </div>
      

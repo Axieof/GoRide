@@ -17,8 +17,47 @@ import (
 type Passenger struct {
 	Firstname     string `json: firstname`
 	Lastname      string `json: lastname`
+	Password      string `json: password`
 	ContactNumber string `json: contactnumber`
 	EmailAddress  string `json: emailaddress`
+}
+
+func CreatePassenger(c echo.Context) error {
+
+	log.Printf("Details posted to passenger")
+
+	PassengerDetails := Passenger{
+		Password:      c.FormValue("password"),
+		Firstname:     c.FormValue("firstname"),
+		Lastname:      c.FormValue("lastname"),
+		ContactNumber: c.FormValue("mobilenumber"),
+		EmailAddress:  c.FormValue("emailaddress"),
+	}
+
+	postBody, _ := json.Marshal(map[string]string{
+		"firstname":     PassengerDetails.Firstname,
+		"lastname":      PassengerDetails.Lastname,
+		"password":      PassengerDetails.Password,
+		"contactnumber": PassengerDetails.ContactNumber,
+		"emailaddress":  PassengerDetails.EmailAddress,
+	})
+
+	responsebody := bytes.NewBuffer(postBody)
+
+	resp, err := http.Post("http://localhost:8001/api/V1/database/createpassenger", "application/json", responsebody)
+
+	if err != nil {
+		log.Fatalf("An error occured %s", err)
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	sb := string(body)
+	return c.String(http.StatusOK, sb)
 }
 
 func ServeHeader(next echo.HandlerFunc) echo.HandlerFunc {
@@ -31,42 +70,6 @@ func ServeHeader(next echo.HandlerFunc) echo.HandlerFunc {
 
 func GetPassenger() string {
 	return "Lol"
-}
-
-func CreatePassenger(c echo.Context) error {
-	PassengerDetails := Passenger{}
-
-	defer c.Request().Body.Close()
-	err := json.NewDecoder(c.Request().Body).Decode(&PassengerDetails)
-
-	if err != nil {
-		log.Fatalf("Failed reading the request body %s", err)
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	} else {
-		postBody, _ := json.Marshal(map[string]string{
-			"firstname":     PassengerDetails.Firstname,
-			"lastname":      PassengerDetails.Lastname,
-			"contactnumber": PassengerDetails.ContactNumber,
-			"emailaddress":  PassengerDetails.EmailAddress,
-		})
-
-		responsebody := bytes.NewBuffer(postBody)
-
-		resp, err := http.Post("http://localhost:8001/api/V1/database/createpassenger", "application/json", responsebody)
-
-		if err != nil {
-			log.Fatalf("An error occured %s", err)
-		}
-
-		defer resp.Body.Close()
-
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		sb := string(body)
-		return c.String(http.StatusOK, sb)
-	}
 }
 
 func DeletePassenger() string {

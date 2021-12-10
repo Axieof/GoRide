@@ -5,48 +5,6 @@
   <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="/src/Frontend/css/login.css">
-  <script>
-    const thisForm = document.getElementById('myForm');
-thisForm.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    const formData = new FormData(thisForm).entries()
-
-    console.log(formData)
-
-    var object = {}
-    formData.forEach(function(value, key) {
-      object[key] = value;
-      console.log(value, key)
-    });
-
-    var json = JSON.stringify(object)
-
-    var request = new XMLHttpRequest();
-    request.open("POST", 'http://localhost:8003/api/V1/driver', false)
-    request.setRequestHeader("Content-Type", "application/json");
-    request.send(json)
-    //const response = await fetch('http://localhost:8003/api/V1/driver', {
-       // method: 'POST',
-        //headers: { 'Content-Type': 'application/json' },
-       // body: json
-   // });
-
-    const result = await response.json();
-    console.log(result)
-});
-
-  $(function () {
-    var update = function() {
-      $('#serializearray').text(
-        JSON.stringify($('form').serializeArray())
-        ); $('#serialize').text(JSON.stringify($('form').serialize())
-        );
-    };
-    update();
-    $('form').change(update);
-  })
-  </script>
-  
   <style>
     body {
     background-color: #F3EBF6;
@@ -166,7 +124,7 @@ thisForm.addEventListener('submit', async function (e) {
       border-style: solid;
       border-width: 1px;
     }</style>
-  <title>Sign in</title>
+  <title>Register</title>
 </head>
 
 <body>

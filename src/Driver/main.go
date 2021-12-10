@@ -33,11 +33,10 @@ func ServeHeader(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 func CreateDriver(c echo.Context) error {
-	DriverDetails := Driver{}
 
 	log.Printf("Details posted to driver")
 
-	DriverDetails = Driver{
+	DriverDetails := Driver{
 		Password:             c.FormValue("password"),
 		Firstname:            c.FormValue("firstname"),
 		Lastname:             c.FormValue("lastname"),
@@ -46,25 +45,6 @@ func CreateDriver(c echo.Context) error {
 		DriverIdentification: c.FormValue("idnumber"),
 		LicenseNumber:        c.FormValue("carlicensenumber"),
 	}
-
-	log.Printf("Details are %s", DriverDetails.Firstname)
-
-	log.Printf(DriverDetails.DriverIdentification)
-	log.Printf(DriverDetails.LicenseNumber)
-
-	//if err != nil {
-	//log.Fatalf("Failed reading the request body %s", err)
-	//return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	//} else {
-	//postBody, _ := json.Marshal(map[string]string{
-	//	"firstname":            DriverDetails.Firstname,
-	//	"lastname":             DriverDetails.Lastname,
-	//	"password":             DriverDetails.Password,
-	//	"contactnumber":        DriverDetails.ContactNumber,
-	//	"emailaddress":         DriverDetails.EmailAddress,
-	//	"driveridentification": DriverDetails.DriverIdentification,
-	//	"licensenumber":        DriverDetails.LicenseNumber,
-	//})
 
 	postBody, _ := json.Marshal(map[string]string{
 		"firstname":            DriverDetails.Firstname,
@@ -92,7 +72,6 @@ func CreateDriver(c echo.Context) error {
 	}
 	sb := string(body)
 	return c.String(http.StatusOK, sb)
-
 }
 
 func main() {
