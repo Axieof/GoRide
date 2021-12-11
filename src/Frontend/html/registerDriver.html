@@ -130,14 +130,15 @@
 <body>
   <div class="main">
     <p class="sign" align="center">Register</p>
-    <form class="form1" id="myForm" method="POST" action="http://localhost:8003/api/V1/driver">
+    <form class="form1" id="myForm" method="POST" action="http://localhost:8003/api/V1/driver" target="http://localhost:9000/login">
         <input class="un " type="text" align="center" name="firstname" placeholder="Firstname">
         <input class="un " type="text" align="center" name="lastname" placeholder="Lastname">
+        <input class="un " type="password" name="password" align="center" placeholder="password">
         <input class="un " type="tel" align="center" name="mobilenumber" placeholder="Phone Number">
         <input class="un " type="email" align="center" name="emailaddress" placeholder="Email Address">
         <input class="un " type="text" align="center" name="idnumber" placeholder="Identification Number">
         <input class="un " type="text" align="center" name="carlicensenumber" placeholder="Car License Number">
-        <input class="submit" type="submit" value="Register">     
+        <a href="http://localhost:9000/login"><input class="submit" type="submit" value="Register"></a>  
     </form>  
     
     

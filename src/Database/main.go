@@ -28,6 +28,7 @@ type AccountDetails struct {
 	AccountStatus  string    `json:"accountstatus"`
 	AccountUpdated time.Time `json:"accountupdated"`
 }
+
 type Passenger struct {
 	Firstname     string `json: firstname`
 	Lastname      string `json: lastname`
@@ -44,6 +45,36 @@ type Driver struct {
 	EmailAddress         string `json: emailaddress`
 	DriverIdentification string `json: driveridentification`
 	LicenseNumber        string `json: licensenumebr`
+}
+
+func CreateAccount(username string, password string, accounttype string, accountstatus string) {
+
+	log.Printf("Creating new account")
+
+	LoginsDB := OpenLoginsDB()
+
+	Query := "INSERT INTO LoginInformation(Username, Password, AccountType, AccountStatus, AccountUpdated) VALUES (?, ?, ?, ?, ?)"
+
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelFunc()
+	stmt, err := LoginsDB.PrepareContext(ctx, Query)
+
+	if err != nil {
+		log.Printf("Error %s when preparing SQL statement", err)
+	}
+	defer stmt.Close()
+
+	var datetime = time.Now()
+	res, err := stmt.ExecContext(ctx, username, password, accounttype, accountstatus, datetime)
+	if err != nil {
+		log.Printf("Error %s when inserting row into passenger table", err)
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		log.Printf("Error %s when finding rows affected", err)
+	}
+	log.Printf("%d Login Created", rows)
+
 }
 
 func InsertPassenger(c echo.Context) error {
@@ -83,6 +114,13 @@ func InsertPassenger(c echo.Context) error {
 			return err
 		}
 		log.Printf("%d Passenger Created", rows)
+
+		AccountUsername := PassengerDetails.Firstname + " " + PassengerDetails.Lastname
+
+		log.Printf(AccountUsername)
+
+		CreateAccount(AccountUsername, PassengerDetails.Password, "Passenger", "active")
+
 		return c.String(http.StatusAccepted, "Passenger Created!")
 	}
 
@@ -126,6 +164,13 @@ func InsertDriver(c echo.Context) error {
 			return err
 		}
 		log.Printf("%d Driver Created", rows)
+
+		AccountUsername := DriverDetails.Firstname + " " + DriverDetails.Lastname
+
+		log.Printf(AccountUsername)
+
+		CreateAccount(AccountUsername, DriverDetails.Password, "Passenger", "active")
+
 		return c.String(http.StatusAccepted, "Driver Created!")
 	}
 
