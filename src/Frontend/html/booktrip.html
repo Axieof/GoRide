@@ -124,7 +124,7 @@
 <body>
   <div class="main">
     <p class="sign" align="center">Book Trip</p>
-    <form class="form1" method="POST" action="http://localhost:8002/api/V1/passenger">
+    <form class="form1" method="POST" action={{.action}}>
       <input class="un " type="text" name="pickuplocation" align="center" placeholder="Pick Up Location">
       <input class="un " type="text" name="dropofflocation" align="center" placeholder="Drop Off Location">
       <a><input class="submit" type="submit" value="Book"></a>

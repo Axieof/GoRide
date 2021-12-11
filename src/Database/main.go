@@ -21,6 +21,10 @@ type LoginInformation struct {
 	Password string `json:"password"`
 }
 
+type DriverName struct {
+	Username string `json:username`
+}
+
 type AccountDetails struct {
 	ID             int       `json:"id"`
 	Username       string    `json:"username"`
@@ -283,6 +287,24 @@ func Checkuser(c echo.Context) error {
 
 }
 
+func checktriprequests(c echo.Context) error {
+	Drivername := DriverName{}
+
+	defer c.Request().Body.Close()
+	err := json.NewDecoder(c.Request().Body).Decode(&Drivername)
+
+	if err != nil {
+		log.Fatalf("Failed reading the request body %s", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	} else {
+		//If error is nil, check if driver has any trip requests
+		reply = checkrequests(Drivername.Username)
+		log.Printf(reply)
+	}
+
+	return c.String(http.StatusOK, reply)
+}
+
 func ServeHeader(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderServer, "GoRide/1.0")
@@ -306,6 +328,7 @@ func main() {
 	g.POST("/checkuser", Checkuser)
 	g.POST("/database/createpassenger", InsertPassenger)
 	g.POST("/database/createdriver", InsertDriver)
+	g.POST("/checktriprequests", checktriprequests)
 
 	go func() {
 		if err := e.Start(":8001"); err != nil && err != http.ErrServerClosed {

@@ -1,7 +1,11 @@
 <h1>Hello {{index . "name"}}! Please choose a service!</h1>
 
 {{if .isPassenger}} 
-<a href="http://localhost:9000/booktrip"><button>Book a trip</button></a> 
+<a href="http://localhost:9000/booktrip/{{.passengerName}}"><button>Book a trip</button></a> 
+{{end}}
+
+{{if not .isPassenger}}
+<a href="http://localhost:9000/checktrips"><button>Check for trips</button></a> 
 {{end}}
 
 <a href="http://localhost:9000/viewtrips"><button>View trip history</button></a>

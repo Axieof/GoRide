@@ -40,6 +40,8 @@ type Passenger struct {
 
 var embededFiles embed.FS
 
+var currentUser []string
+
 func getFileSystem(useOS bool) http.FileSystem {
 	if useOS {
 		log.Print("using live mode")
@@ -80,6 +82,9 @@ func homepage(c echo.Context) error {
 	isPassenger := false
 
 	name := c.Param("name")
+
+	currentUser = append(currentUser, name)
+	log.Printf("The current user's name is %s", currentUser)
 	accounttype := c.Param("accounttype")
 
 	if accounttype == "Passenger" {
@@ -91,8 +96,9 @@ func homepage(c echo.Context) error {
 	log.Printf("The account type is %s", isPassenger)
 	log.Println(name)
 	return c.Render(http.StatusOK, "homepage.html", map[string]interface{}{
-		"name":        name,
-		"isPassenger": isPassenger,
+		"name":          name,
+		"isPassenger":   isPassenger,
+		"passengerName": currentUser,
 	})
 }
 
@@ -118,13 +124,49 @@ func register(c echo.Context) error {
 func booktrip(c echo.Context) error {
 	log.Printf("Book trip accessed")
 
-	return c.Render(http.StatusOK, "registerDriver.html", map[string]interface{}{})
+	log.Printf("Current user is %s", currentUser[0])
+
+	url := "http://localhost:8004/api/V1/createtrip/" + currentUser[0]
+	log.Printf("The url is %s", url)
+
+	return c.Render(http.StatusOK, "booktrip.html", map[string]interface{}{
+		"action": url,
+	})
 }
 
 func viewtrips(c echo.Context) error {
 	log.Printf("View trips accessed")
 
-	return c.Render(http.StatusOK, "registerDriver.html", map[string]interface{}{})
+	return c.Render(http.StatusOK, "viewtrips.html", map[string]interface{}{})
+}
+
+func checktrips(c echo.Context) error {
+	log.Printf("Check trips accessed")
+
+	username := c.Param("username")
+
+	postBody, _ := json.Marshal(map[string]string{
+		"username": username,
+	})
+
+	responsebody := bytes.NewBuffer(postBody)
+
+	resp, err := http.Post("http://localhost:8001/api/V1/checktriprequests", "application/json", responsebody)
+
+	if err != nil {
+		log.Fatalf("An error occured %s", err)
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	sb := string(body)
+	log.Printf(sb)
+
+	return c.Render(http.StatusOK, "checktrips.html", map[string]interface{}{})
 }
 
 func getFormValue(c echo.Context) error {
@@ -236,8 +278,9 @@ func main() {
 
 	e.GET("/homepage/:name/:accounttype", homepage)
 
-	e.GET("/booktrip", booktrip)
+	e.GET("/booktrip/:name", booktrip)
 	e.GET("/viewtrips", viewtrips)
+	e.GET("/checktrips/:username", checktrips)
 
 	log.Printf("Frontend Service started")
 
