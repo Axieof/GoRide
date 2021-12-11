@@ -57,6 +57,8 @@ func CreatePassenger(c echo.Context) error {
 		log.Fatalln(err)
 	}
 	sb := string(body)
+
+	http.Redirect(c.Response(), c.Request(), "http://localhost:9000/login", http.StatusSeeOther)
 	return c.String(http.StatusOK, sb)
 }
 
