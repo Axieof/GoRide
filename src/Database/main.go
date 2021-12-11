@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -169,7 +170,7 @@ func InsertDriver(c echo.Context) error {
 
 		log.Printf(AccountUsername)
 
-		CreateAccount(AccountUsername, DriverDetails.Password, "Passenger", "active")
+		CreateAccount(AccountUsername, DriverDetails.Password, "Driver", "active")
 
 		return c.String(http.StatusAccepted, "Driver Created!")
 	}
@@ -265,10 +266,15 @@ func Checkuser(c echo.Context) error {
 	accountExists := CheckAccount(&LoginDB, LoginDetails.Username, LoginDetails.Password)
 	log.Println(accountExists)
 
+	username := LoginDetails.Username
+
+	firstname := strings.Fields(username)
+	log.Printf(username)
+
 	if accountExists[0] == "true" {
 		log.Printf(accountExists[0])
 
-		http.Redirect(c.Response(), c.Request(), "http://localhost:9000/homepage", http.StatusSeeOther)
+		http.Redirect(c.Response(), c.Request(), "http://localhost:9000/homepage/"+firstname[0]+"/"+accountExists[1], http.StatusSeeOther)
 		return c.String(http.StatusOK, accountExists[1])
 	} else {
 		http.Redirect(c.Response(), c.Request(), "http://localhost:9000/login", http.StatusSeeOther)

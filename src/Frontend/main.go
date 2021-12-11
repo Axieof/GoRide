@@ -75,8 +75,25 @@ func login(c echo.Context) error {
 }
 
 func homepage(c echo.Context) error {
-	log.Printf("Login accessed")
-	return c.Render(http.StatusOK, "homepage.html", map[string]interface{}{})
+	log.Printf("Homepage accessed")
+
+	isPassenger := false
+
+	name := c.Param("name")
+	accounttype := c.Param("accounttype")
+
+	if accounttype == "Passenger" {
+		isPassenger = true
+	} else {
+		isPassenger = false
+	}
+
+	log.Printf("The account type is %s", isPassenger)
+	log.Println(name)
+	return c.Render(http.StatusOK, "homepage.html", map[string]interface{}{
+		"name":        name,
+		"isPassenger": isPassenger,
+	})
 }
 
 func register(c echo.Context) error {
@@ -96,6 +113,18 @@ func register(c echo.Context) error {
 		return c.Render(http.StatusOK, "login.html", map[string]interface{}{})
 	}
 
+}
+
+func booktrip(c echo.Context) error {
+	log.Printf("Book trip accessed")
+
+	return c.Render(http.StatusOK, "registerDriver.html", map[string]interface{}{})
+}
+
+func viewtrips(c echo.Context) error {
+	log.Printf("View trips accessed")
+
+	return c.Render(http.StatusOK, "registerDriver.html", map[string]interface{}{})
 }
 
 func getFormValue(c echo.Context) error {
@@ -205,7 +234,10 @@ func main() {
 	e.GET("/register", register)
 	e.POST("/register", getFormValue)
 
-	e.GET("/homepage", homepage)
+	e.GET("/homepage/:name/:accounttype", homepage)
+
+	e.GET("/booktrip", booktrip)
+	e.GET("/viewtrips", viewtrips)
 
 	log.Printf("Frontend Service started")
 
