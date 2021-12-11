@@ -255,25 +255,24 @@ func CheckAccount(db *sql.DB, username string, password string) [2]string {
 //e.Post("/login/api", Checkuser)
 func Checkuser(c echo.Context) error {
 	// Get name and password
-	LoginDetails := LoginInformation{}
-	defer c.Request().Body.Close()
-	err := json.NewDecoder(c.Request().Body).Decode(&LoginDetails)
+	LoginDetails := LoginInformation{
+		Username: c.FormValue("username"),
+		Password: c.FormValue("password"),
+	}
 
-	if err != nil {
-		log.Fatalf("Failed reading the request body %s", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	LoginDB := OpenLoginsDB()
+
+	accountExists := CheckAccount(&LoginDB, LoginDetails.Username, LoginDetails.Password)
+	log.Println(accountExists)
+
+	if accountExists[0] == "true" {
+		log.Printf(accountExists[0])
+
+		http.Redirect(c.Response(), c.Request(), "http://localhost:9000/homepage", http.StatusSeeOther)
+		return c.String(http.StatusOK, accountExists[1])
 	} else {
-		LoginDB := OpenLoginsDB()
-
-		passengerExists := CheckAccount(&LoginDB, LoginDetails.Username, LoginDetails.Password)
-		log.Println(passengerExists)
-
-		if passengerExists[0] == "true" {
-			log.Printf(passengerExists[0])
-			return c.String(http.StatusOK, passengerExists[1])
-		} else {
-			return c.String(http.StatusNotAcceptable, passengerExists[0])
-		}
+		http.Redirect(c.Response(), c.Request(), "http://localhost:9000/login", http.StatusSeeOther)
+		return c.String(http.StatusNotAcceptable, accountExists[0])
 	}
 
 }
