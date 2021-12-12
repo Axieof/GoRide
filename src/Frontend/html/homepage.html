@@ -5,7 +5,7 @@
 {{end}}
 
 {{if not .isPassenger}}
-<a href="http://localhost:9000/checktrips"><button>Check for trips</button></a> 
+<a href="http://localhost:9000/checktrips/{{.passengerName}}"><button>Check for trips</button></a> 
 {{end}}
 
 <a href="http://localhost:9000/viewtrips"><button>View trip history</button></a>

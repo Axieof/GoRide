@@ -293,7 +293,59 @@ func Checkuser(c echo.Context) error {
 
 }
 
+func getPassengerName(PassengerID string) string {
+	PassengersDB := OpenPassengersDB()
+	var FirstName string
+	var LastName string
+
+	Query := "SELECT FirstName, LastName FROM GoRide_Passengers.Passenger WHERE ID = '" + PassengerID + "'"
+	fmt.Println(Query)
+	results := PassengersDB.QueryRow(Query)
+
+	switch err := results.Scan(&FirstName, &LastName); err {
+	case sql.ErrNoRows:
+		PassengersDB.Close()
+		return "Empty"
+	case nil:
+		PassengersDB.Close()
+		log.Printf("Row Get!")
+		return FirstName + " " + LastName
+	default:
+		panic(err)
+	}
+}
+
+func checkrequests(DriverName string) string {
+	TripsDB := OpenTripsDB()
+	PassengerRequest := PassengerTrip{}
+
+	driverID := getDriverID(DriverName)
+
+	Query := "SELECT PassengerID, PickUp, DropOff FROM GoRide_Trips.trip WHERE DriverID = '" + driverID + "'  AND TripStatus = 'Pending'"
+	fmt.Println(Query)
+	results := TripsDB.QueryRow(Query)
+
+	switch err := results.Scan(&PassengerRequest.Name, &PassengerRequest.PickupLocation, &PassengerRequest.DropoffLocation); err {
+
+	case sql.ErrNoRows:
+		TripsDB.Close()
+		return "Empty"
+	case nil:
+		TripsDB.Close()
+		log.Printf("Row Get!")
+		passengerName := getPassengerName(PassengerRequest.Name)
+
+		log.Printf("PassengerName is %s", passengerName)
+		fullstring := passengerName + "," + PassengerRequest.PickupLocation + "," + PassengerRequest.DropoffLocation
+
+		return fullstring
+	default:
+		panic(err)
+	}
+}
+
 func checktriprequests(c echo.Context) error {
+	log.Printf("Checkk Trip Requests Accessed")
 	Drivername := DriverName{}
 
 	defer c.Request().Body.Close()
@@ -304,14 +356,13 @@ func checktriprequests(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	} else {
 		//If error is nil, check if driver has any trip requests
-		//reply = checkrequests(Drivername.Username)
-		log.Printf("Test")
+		reply := checkrequests(Drivername.Username)
+		log.Printf("Check Trip Requests reply is: %s", reply)
+		return c.String(http.StatusOK, reply)
 	}
-
-	return c.String(http.StatusOK, "Test")
 }
 
-func getDriverID() string {
+func assignDriverID() string {
 	DriversDB := OpenDriversDB()
 	var ID string
 	Driver := Driver{}
@@ -326,6 +377,28 @@ func getDriverID() string {
 		return "Empty"
 	case nil:
 		DriversDB.Close()
+		log.Printf("Row Get!")
+		log.Printf(ID)
+		return ID
+	default:
+		panic(err)
+	}
+}
+
+func getDriverID(DriverName string) string {
+	DriversDb := OpenDriversDB()
+	var ID string
+
+	Query := "SELECT ID FROM GoRide_Drivers.Driver WHERE FirstName = '" + DriverName + "'"
+	fmt.Println(Query)
+	results := DriversDb.QueryRow(Query)
+
+	switch err := results.Scan(&ID); err {
+	case sql.ErrNoRows:
+		DriversDb.Close()
+		return "Empty"
+	case nil:
+		DriversDb.Close()
 		log.Printf("Row Get!")
 		log.Printf(ID)
 		return ID
@@ -358,7 +431,7 @@ func getPassengerID(PassengerName string) string {
 
 func createtrip(c echo.Context) error {
 	PassengerRequest := PassengerTrip{}
-	driverID := getDriverID()
+	driverID := assignDriverID()
 
 	name := c.Param("name")
 	log.Printf("Name from param is %s", name)
@@ -412,6 +485,80 @@ func createtrip(c echo.Context) error {
 	return c.String(http.StatusOK, driverID)
 }
 
+func tripstatus(c echo.Context) error {
+	status := c.Param("status")
+	drivername := c.Param("drivername")
+	driverID := getDriverID(drivername)
+	TripsDB := OpenTripsDB()
+
+	if status == "start" {
+		statusToUpdate := "Started"
+		log.Printf("Status to update is: %s", statusToUpdate)
+
+		Query := "UPDATE GoRide_Trips.Trip SET TripStatus = 'Started', TripStart = CurDate() WHERE DriverID = '" + driverID + "' AND TripStatus = 'Pending'"
+		log.Printf("Query is: %s", Query)
+		ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancelFunc()
+		stmt, err := TripsDB.PrepareContext(ctx, Query)
+
+		if err != nil {
+			log.Printf("Error %s when preparing SQL statement", err)
+			return err
+		}
+		defer stmt.Close()
+
+		res, err := stmt.ExecContext(ctx)
+		if err != nil {
+			log.Printf("Error %s when updating trips table", err)
+			return err
+		}
+		rows, err := res.RowsAffected()
+		if err != nil {
+			log.Printf("Error %s when finding rows affected", err)
+			return err
+		}
+		log.Printf("%d Trips Updated", rows)
+		return c.String(http.StatusOK, "Status updated")
+
+	} else if status == "end" {
+		statusToUpdate := "Ended"
+		log.Printf("Status to update is: %s", statusToUpdate)
+
+		Query := "UPDATE GoRide_Trips.Trip SET TripStatus = 'Ended', TripEnd = CurDate() WHERE DriverID = '" + driverID + "' AND TripStatus = 'Started'"
+		log.Printf("Query is: %s", Query)
+		ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancelFunc()
+		stmt, err := TripsDB.PrepareContext(ctx, Query)
+
+		if err != nil {
+			log.Printf("Error %s when preparing SQL statement", err)
+			return err
+		}
+		defer stmt.Close()
+
+		res, err := stmt.ExecContext(ctx)
+		if err != nil {
+			log.Printf("Error %s when updating trips table", err)
+			return err
+		}
+		rows, err := res.RowsAffected()
+		if err != nil {
+			log.Printf("Error %s when finding rows affected", err)
+			return err
+		}
+		log.Printf("%d Trips Updated", rows)
+
+		return c.String(http.StatusOK, "Status updated")
+
+		url := "http://localhost:9000/homepage/" + drivername + "/Driver"
+
+		c.Redirect(http.StatusFound, url)
+	}
+
+	return c.String(http.StatusNotAcceptable, "Status not received")
+
+}
+
 func ServeHeader(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderServer, "GoRide/1.0")
@@ -437,6 +584,7 @@ func main() {
 	g.POST("/database/createdriver", InsertDriver)
 	g.POST("/database/createtrip/:name", createtrip)
 	g.POST("/checktriprequests", checktriprequests)
+	g.POST("/database/tripstatus/:status/:drivername", tripstatus)
 
 	go func() {
 		if err := e.Start(":8001"); err != nil && err != http.ErrServerClosed {

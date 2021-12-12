@@ -1,0 +1,20 @@
+<h1>Hello {{.DriverName}}!</h1>
+
+{{ if .isEmpty}}
+<p>No Trip Requests!</p>
+{{end}}
+
+{{ if not .isEmpty}}
+<h3>Trip request from {{.PassengerName}}</h3>
+<h3>Start Location {{.Start}}</h3>
+<h3>End Location {{.End}}</h3>
+
+<form action="http://localhost:8001/api/V1/database/tripstatus/start/{{.DriverName}}" method="POST">
+    <a><button>Start Trip</button></a>
+</form>
+<form action="http://localhost:8001/api/V1/database/tripstatus/end/{{.DriverName}}" method="POST">
+    <a><button>EndTrip</button></a>
+</form>
+
+
+{{ end }}

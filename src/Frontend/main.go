@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -86,7 +87,9 @@ func homepage(c echo.Context) error {
 	currentUser = nil
 
 	currentUser = append(currentUser, name)
-	log.Printf("The current user's name is %s", currentUser)
+	username := currentUser[0]
+
+	log.Printf("The current user's name is %s", username)
 	accounttype := c.Param("accounttype")
 
 	if accounttype == "Passenger" {
@@ -100,7 +103,7 @@ func homepage(c echo.Context) error {
 	return c.Render(http.StatusOK, "homepage.html", map[string]interface{}{
 		"name":          name,
 		"isPassenger":   isPassenger,
-		"passengerName": currentUser,
+		"passengerName": username,
 	})
 }
 
@@ -147,6 +150,7 @@ func checktrips(c echo.Context) error {
 	log.Printf("Check trips accessed")
 
 	username := c.Param("username")
+	log.Printf("Name is %s", username)
 
 	postBody, _ := json.Marshal(map[string]string{
 		"username": username,
@@ -167,9 +171,34 @@ func checktrips(c echo.Context) error {
 		log.Fatalln(err)
 	}
 	sb := string(body)
-	log.Printf(sb)
+	log.Printf("The output is %s", sb)
 
-	return c.Render(http.StatusOK, "checktrips.html", map[string]interface{}{})
+	PassengerInfo := strings.Split(sb, ",")
+
+	name := "Null"
+	start := "Null"
+	end := "Null"
+
+	var empty bool
+
+	if sb == "Empty" {
+		empty := true
+		log.Printf("Empty is %s", empty)
+	} else {
+		empty := false
+		log.Printf("Empty is %s", empty)
+		name = PassengerInfo[0]
+		start = PassengerInfo[1]
+		end = PassengerInfo[2]
+	}
+
+	return c.Render(http.StatusOK, "checktrips.html", map[string]interface{}{
+		"PassengerName": name,
+		"Start":         start,
+		"End":           end,
+		"DriverName":    username,
+		"isEmpty":       empty,
+	})
 }
 
 func getFormValue(c echo.Context) error {
