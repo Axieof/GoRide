@@ -105,18 +105,44 @@ This route is for when the driver wants to check if any trip requests have been 
 
 ### Database Service
 - POST (http://localhost:8001/api/V1/checkuser)
+
+This route is for when the authentication service posts the suer login information, where it is then sent to this rotue to be checked against the database.
+
 - POST (http://localhost:8001/api/V1/database/createpassenger)
-- POST (http://localhost:8001/api/V1/dataabse/createdriver)
+
+This route is for when the user creates a new passenger account, where the Frontend service then posts their details to the passenger service which then posts it to this rotue to create a pasenger
+
+- POST (http://localhost:8001/api/V1/databse/createdriver)
+
+This route is for when the user creates a new driver account, where the Frontend service then posts their details to the driver service which then posts it to this rotue to create a driver
+
 - POST (http://localhost:8001/api/V1/createtrip/:name)
+
+This route is for when the passenger user books a new trip, which sends their inforamtion to the trip service, which then sends it to this route to create the trip record. A free driver is assigned to the trip at this point and sent back to the driver service so that the driver can choose to start the trip or end it.
+
 - POST (http://localhost:8001/api/V1/checktriprequests)
+
+This route is for when the driver user wants to check if they have been assigned into any trips, in which the database service checks against the database and sends the relevant information to the Frontend service for the user to view it.
+
 - POST (http://localhost:8001/api/V1/database/tripstatus/:status/:drivername)
+
+This route is for when the driver user starts or ends the trip, to which the information is sent to this route from the Frontend to the Trip and then udpates the database depending on the case, such as changing status of trip to "Started" if the driver starts it or changing status of trip to "Ended" if driver ends it.
+
 - POST (http://localhost:8001/api/V1/database/viewtrips/:name/:accounttype)
+
+This route is for when the user wants to view their trip, where their information is sent from the Frontend to this route, which then returns the trips of the user for it to be rendered into a html page.
 
 ### Trip Service
 - POST (http://localhost:8004/api/V1/createtrip/:name)
 
+This route is for when the user wants to create a trip, where information is passed from the Frontend service to here, where the information is processed then sent to the database service for a record to be created
+
 ### Driver Service
 - POST (http://localhost:8003/api/V1/driver)
 
+This route is for when the user creates a driver account, where the the details are sent here to be processed and sent to the database sercice for a record to be created
+
 ### Passenger Service
 - POST (http://localhost:8002/api/V1/passenger)
+
+This route is for when the user creates a passenger account, where the the details are sent here to be processed and sent to the database sercice for a record to be created
