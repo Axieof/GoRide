@@ -61,4 +61,4 @@ Open the file in your MySQL Workbench and run it
 
 ## Design & Architecture
 
-![GoRide Architecture](https://github.com/Axieof/GoRide/tree/master/setup/img/GoRide_Architecture_Diagram.PNG)
+![GoRide Architecture](https://github.com/Axieof/GoRide/tree/master/setup/img/GoRide_Architecture_Diagram.png)
