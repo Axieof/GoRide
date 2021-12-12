@@ -75,12 +75,12 @@ INSERT INTO GoRide_Logins.LoginInformation(Username, Password, AccountType, Acco
 INSERT INTO GoRide_Logins.LoginInformation(Username, Password, AccountType, AccountStatus, AccountUpdated) VALUES("Kenenth Teo", "12345", "Driver", "Active", CURDATE());
 
 -- Driver Insertion
-INSERT INTO GoRide_Drivers.Driver(FirstName, LastName, Password, ContactNumber, EmailAddress, DriverIdentification, LicenseNumber, AccountStatus, AccountUpdated) VALUES("Kenenth", "Teo", "12345678", "Kenneth@gmail.com", "D9400X", "SCL6193H", "Active", CURDATE());
-INSERT INTO GoRide_Drivers.Driver(FirstName, LastName, Password, ContactNumber, EmailAddress, DriverIdentification, LicenseNumber, AccountStatus, AccountUpdated) VALUES("Danny", "Chan", "12345678", "Danny@gmail.com", "D1234X", "SGX7562F", "Active", CURDATE());
-INSERT INTO GoRide_Drivers.Driver(FirstName, LastName, Password, ContactNumber, EmailAddress, DriverIdentification, LicenseNumber, AccountStatus, AccountUpdated) VALUES("Kah", "Ho", "12345678", "KahHo@gmail.com", "D1867X", "SUJ2396J", "Active", CURDATE());
+INSERT INTO GoRide_Drivers.Driver(FirstName, LastName, ContactNumber, EmailAddress, DriverIdentification, LicenseNumber, AccountStatus, AccountUpdated) VALUES("Kenenth", "Teo", "12345678", "Kenneth@gmail.com", "D9400X", "SCL6193H", "Active", CURDATE());
+INSERT INTO GoRide_Drivers.Driver(FirstName, LastName, ContactNumber, EmailAddress, DriverIdentification, LicenseNumber, AccountStatus, AccountUpdated) VALUES("Danny", "Chan", "12345678", "Danny@gmail.com", "D1234X", "SGX7562F", "Active", CURDATE());
+INSERT INTO GoRide_Drivers.Driver(FirstName, LastName, ContactNumber, EmailAddress, DriverIdentification, LicenseNumber, AccountStatus, AccountUpdated) VALUES("Kah", "Ho", "12345678", "KahHo@gmail.com", "D1867X", "SUJ2396J", "Active", CURDATE());
 
 -- Passenger Insertion
-INSERT INTO GoRide_Passengers.Passenger(FirstName, LastName, Password, ContactNumber, EmailAddress,AccountStatus, AccountUpdated) VALUES("Pritheev", "Roshan", "12345678", "Pritheev@gmail.com", "Active", CURDATE());
-INSERT INTO GoRide_Passengers.Passenger(FirstName, LastName, Password, ContactNumber, EmailAddress,AccountStatus, AccountUpdated) VALUES("Caleb", "Goh", "12345678", "Caleb@gmail.com", "Active", CURDATE());
-INSERT INTO GoRide_Passengers.Passenger(FirstName, LastName, Password, ContactNumber, EmailAddress,AccountStatus, AccountUpdated) VALUES("Dong", "Kiat", "12345678", "DongKiat@gmail.com", "Active", CURDATE());
+INSERT INTO GoRide_Passengers.Passenger(FirstName, LastName, ContactNumber, EmailAddress,AccountStatus, AccountUpdated) VALUES("Pritheev", "Roshan", "12345678", "Pritheev@gmail.com", "Active", CURDATE());
+INSERT INTO GoRide_Passengers.Passenger(FirstName, LastName, ContactNumber, EmailAddress,AccountStatus, AccountUpdated) VALUES("Caleb", "Goh", "12345678", "Caleb@gmail.com", "Active", CURDATE());
+INSERT INTO GoRide_Passengers.Passenger(FirstName, LastName, ContactNumber, EmailAddress,AccountStatus, AccountUpdated) VALUES("Dong", "Kiat", "12345678", "DongKiat@gmail.com", "Active", CURDATE());
 
