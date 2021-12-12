@@ -65,12 +65,12 @@ Open the file in your MySQL Workbench and run it
 
 GoRide consists of 6 services, that all communciate with each other, or through each other, to perform tasks. The main service is the frontend service, which renders html for the user as an itnerface to perform tasks. The frontend then calls the corresponding services based on the tasks requested, such as Authentication service for logging in, Trip service for creating trips and viewing trips. The frontend also communicates with the Passenger and Driver service which communciates with the database service for certain tasks. GoRide was designed with each service built to perform specifics tasks related to a certain category, such as the category they are named after. 
 
-###### Authentication Service
+### Authentication Service
 - POST (http://localhost:8000/api/V1/login)
 
 The Authentication Service listens to any posts request to the login route, whenevr a user tries to login. The Frontend service then posts the details the user has posted in the login form to the route, which then takes in teh values and checks again the database if the login exists. More was planend for the Authentication service, such as JWT authentication, but was not able to be implemented by the deadline.
 
-###### Frontend Service
+### Frontend Service
 - GET (http://localhost:9000/)
 
 This route is when the user attempts the access the GoRide service, by reaching the default landing page. The Frontend service then renders a html offering options to login, register as a passenger or driver.
@@ -103,7 +103,7 @@ This route is for when the user, regardless of passenger or driver, wants to vie
 
 This route is for when the driver wants to check if any trip requests have been assigned to them, where they can then start the trip if they have picked up the passenger, and end trip when they have dropped off the passenger.
 
-###### Database Service
+### Database Service
 - POST (http://localhost:8001/api/V1/checkuser)
 - POST (http://localhost:8001/api/V1/database/createpassenger)
 - POST (http://localhost:8001/api/V1/dataabse/createdriver)
@@ -112,11 +112,11 @@ This route is for when the driver wants to check if any trip requests have been 
 - POST (http://localhost:8001/api/V1/database/tripstatus/:status/:drivername)
 - POST (http://localhost:8001/api/V1/database/viewtrips/:name/:accounttype)
 
-###### Trip Service
+### Trip Service
 - POST (http://localhost:8004/api/V1/createtrip/:name)
 
-###### Driver Service
+### Driver Service
 - POST (http://localhost:8003/api/V1/driver)
 
-###### Passenger Service
+### Passenger Service
 - POST (http://localhost:8002/api/V1/passenger)
