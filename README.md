@@ -2,8 +2,9 @@
 
 ## Project Description
 
-This project is an assignment of my Emergin Trends in IT(ETI) Module. The assignment was to design a Ride-Sharing Platform with the use of Microservice Architecture, written in Go with the use of MYSQL as a database and HTML/CSS for the FrontEnd
+This project is an assignment of my Emerging Trends in IT(ETI) Module. The assignment was to design a Ride-Sharing Platform with the use of Microservice Architecture, written in Go with the use of MYSQL as a database and HTML/CSS for the FrontEnd
 
+---
 ## Setup Instructions
 
 Each Service requires the Go [Echo Framework](https://echo.labstack.com/guide/) package, with the database service needing the mysql sql driver package
@@ -59,6 +60,7 @@ go run main.go
 Database setup scripts can be found in setup/scripts/GoRide_DB_Initialization.sql
 Open the file in your MySQL Workbench and run it
 
+---
 ## Design & Architecture
 
 ![GoRide Architecture](https://github.com/Axieof/GoRide/blob/master/setup/img/GoRide_Architecture_Diagram.PNG)
@@ -73,6 +75,8 @@ The Frontend service then posts the details the user has posted in the login for
 which then takes in teh values and checks again the database if the login exists. More was planend 
 for the Authentication service, such as JWT authentication, but was not able to be implemented by the deadline.
 ```
+
+---
 ### Frontend Service
 - GET (http://localhost:9000/)
 ```
@@ -122,6 +126,8 @@ This route is for when the driver wants to check if any trip requests have been 
 where they can then start the trip if they have picked up the passenger, and end trip when they 
 have dropped off the passenger.
 ```
+
+---
 ### Database Service
 - POST (http://localhost:8001/api/V1/checkuser)
 ```
@@ -164,6 +170,8 @@ This route is for when the user wants to view their trip, where their informatio
 from the Frontend to this route, which then returns the trips of the user for it to be rendered 
 into a html page.
 ```
+
+---
 ### Trip Service
 - POST (http://localhost:8004/api/V1/createtrip/:name)
 ```
@@ -171,15 +179,21 @@ This route is for when the user wants to create a trip, where information is pas
 Frontend service to here, where the information is processed then sent to the database service 
 for a record to be created
 ```
+
+---
 ### Driver Service
 - POST (http://localhost:8003/api/V1/driver)
 ```
 This route is for when the user creates a driver account, where the the details are sent here 
 to be processed and sent to the database sercice for a record to be created
 ```
+
+---
 ### Passenger Service
 - POST (http://localhost:8002/api/V1/passenger)
 ```
 This route is for when the user creates a passenger account, where the the details are sent here 
 to be processed and sent to the database sercice for a record to be created
 ```
+
+---
