@@ -6,7 +6,7 @@ This project is an assignment of my Emergin Trends in IT(ETI) Module. The assign
 
 ## Setup Instructions
 
-Each Service requires the Go Echo Framework package, with the database service needing the mysql sql driver package
+Each Service requires the Go [Echo Framework](https://echo.labstack.com/guide/) package, with the database service needing the mysql sql driver package
 
 FrontEnd Service Setup Commands
 
