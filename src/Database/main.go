@@ -34,6 +34,12 @@ type AccountDetails struct {
 	AccountUpdated time.Time `json:"accountupdated"`
 }
 
+type PassengerTrip struct {
+	PickupLocation  string `json: pickuplocation`
+	DropoffLocation string `json: dropofflocation`
+	Name            string `json: passengerName`
+}
+
 type Passenger struct {
 	Firstname     string `json: firstname`
 	Lastname      string `json: lastname`
@@ -298,11 +304,112 @@ func checktriprequests(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	} else {
 		//If error is nil, check if driver has any trip requests
-		reply = checkrequests(Drivername.Username)
-		log.Printf(reply)
+		//reply = checkrequests(Drivername.Username)
+		log.Printf("Test")
 	}
 
-	return c.String(http.StatusOK, reply)
+	return c.String(http.StatusOK, "Test")
+}
+
+func getDriverID() string {
+	DriversDB := OpenDriversDB()
+	var ID string
+	Driver := Driver{}
+
+	Query := "SELECT ID, FirstName, LastName, ContactNumber, EmailAddress, DriverIdentification, LicenseNumber FROM GoRide_Drivers.Driver d WHERE d.ID NOT IN (SELECT DriverID FROM GoRide_Trips.Trip) LIMIT 1"
+	fmt.Println(Query)
+	results := DriversDB.QueryRow(Query)
+
+	switch err := results.Scan(&ID, &Driver.Firstname, &Driver.Lastname, &Driver.ContactNumber, &Driver.EmailAddress, &Driver.DriverIdentification, &Driver.LicenseNumber); err {
+	case sql.ErrNoRows:
+		DriversDB.Close()
+		return "Empty"
+	case nil:
+		DriversDB.Close()
+		log.Printf("Row Get!")
+		log.Printf(ID)
+		return ID
+	default:
+		panic(err)
+	}
+}
+
+func getPassengerID(PassengerName string) string {
+	PassengersDB := OpenPassengersDB()
+	var ID string
+
+	Query := "SELECT ID FROM GoRide_Passengers.Passenger WHERE FirstName = '" + PassengerName + "'"
+	fmt.Println(Query)
+	results := PassengersDB.QueryRow(Query)
+
+	switch err := results.Scan(&ID); err {
+	case sql.ErrNoRows:
+		PassengersDB.Close()
+		return "Empty"
+	case nil:
+		PassengersDB.Close()
+		log.Printf("Row Get!")
+		log.Printf(ID)
+		return ID
+	default:
+		panic(err)
+	}
+}
+
+func createtrip(c echo.Context) error {
+	PassengerRequest := PassengerTrip{}
+	driverID := getDriverID()
+
+	name := c.Param("name")
+	log.Printf("Name from param is %s", name)
+
+	defer c.Request().Body.Close()
+	err := json.NewDecoder(c.Request().Body).Decode(&PassengerRequest)
+
+	log.Printf("Passenger Start: %s", PassengerRequest.PickupLocation)
+	log.Printf("Passenger End: %s", PassengerRequest.DropoffLocation)
+	log.Printf("Passenger Name: %s", PassengerRequest.Name)
+
+	passengerID := getPassengerID(name)
+	log.Printf("Passenger ID is %s", passengerID)
+
+	if err != nil {
+		log.Fatalf("Failed reading the request body %s", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	} else {
+		//If error is nil, get a driver and create trip
+
+		log.Printf("Driver ID is %s", driverID)
+		TripsDB := OpenTripsDB()
+		Query := "INSERT INTO Trip(PassengerID, DriverID, PickUp, DropOff, TripStatus) VALUES (?, ?, ?, ?, ?)"
+
+		ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancelFunc()
+		stmt, err := TripsDB.PrepareContext(ctx, Query)
+
+		if err != nil {
+			log.Printf("Error %s when preparing SQL statement", err)
+			return err
+		}
+		defer stmt.Close()
+
+		res, err := stmt.ExecContext(ctx, passengerID, driverID, PassengerRequest.PickupLocation, PassengerRequest.DropoffLocation, "Pending")
+		if err != nil {
+			log.Printf("Error %s when isnerting row into passenger table", err)
+			return err
+		}
+		rows, err := res.RowsAffected()
+		if err != nil {
+			log.Printf("Error %s when finding rows affected", err)
+			return err
+		}
+		log.Printf("%d Trip Created", rows)
+
+		return c.String(http.StatusAccepted, "Trip Created!")
+
+	}
+
+	return c.String(http.StatusOK, driverID)
 }
 
 func ServeHeader(next echo.HandlerFunc) echo.HandlerFunc {
@@ -328,6 +435,7 @@ func main() {
 	g.POST("/checkuser", Checkuser)
 	g.POST("/database/createpassenger", InsertPassenger)
 	g.POST("/database/createdriver", InsertDriver)
+	g.POST("/database/createtrip/:name", createtrip)
 	g.POST("/checktriprequests", checktriprequests)
 
 	go func() {

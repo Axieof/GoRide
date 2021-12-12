@@ -83,6 +83,8 @@ func homepage(c echo.Context) error {
 
 	name := c.Param("name")
 
+	currentUser = nil
+
 	currentUser = append(currentUser, name)
 	log.Printf("The current user's name is %s", currentUser)
 	accounttype := c.Param("accounttype")
@@ -123,10 +125,11 @@ func register(c echo.Context) error {
 
 func booktrip(c echo.Context) error {
 	log.Printf("Book trip accessed")
+	user := currentUser[0]
 
-	log.Printf("Current user is %s", currentUser[0])
+	log.Printf("Current user is %s", user)
 
-	url := "http://localhost:8004/api/V1/createtrip/" + currentUser[0]
+	url := "http://localhost:8004/api/V1/createtrip/" + user
 	log.Printf("The url is %s", url)
 
 	return c.Render(http.StatusOK, "booktrip.html", map[string]interface{}{

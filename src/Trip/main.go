@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -29,6 +32,36 @@ func createtrip(c echo.Context) error {
 
 	log.Printf("Start is %s", Start)
 	log.Printf("End is %s", End)
+
+	postBody, _ := json.Marshal(map[string]string{
+		"pickuplocation":  Start,
+		"dropofflocation": End,
+		"passengerName":   name,
+	})
+
+	responsebody := bytes.NewBuffer(postBody)
+
+	url := "http://localhost:8001/api/V1/database/createtrip/" + name
+
+	resp, err := http.Post(url, "application/json", responsebody)
+
+	if err != nil {
+		log.Fatalf("An error occured %s", err)
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	sb := string(body)
+
+	return c.String(http.StatusOK, sb)
+
+	//Get free driver
+	//Create trip
+	//
 
 	return nil
 
