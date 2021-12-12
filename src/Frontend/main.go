@@ -39,6 +39,21 @@ type Passenger struct {
 	EmailAddress string
 }
 
+type Trip struct {
+	ID          string `json: ID`
+	PassengerID string `json: PassengerID`
+	DriverID    string `json: DriverID`
+	PickUp      string `json: PickUp`
+	DropOff     string `json: DropOff`
+	TripStatus  string `json: TripStatus`
+	TripStart   string `json: TripStart`
+	TripEnd     string `json: TripEnd`
+}
+
+type TripList struct {
+	List []Trip
+}
+
 var embededFiles embed.FS
 
 var currentUser []string
@@ -143,7 +158,63 @@ func booktrip(c echo.Context) error {
 func viewtrips(c echo.Context) error {
 	log.Printf("View trips accessed")
 
-	return c.Render(http.StatusOK, "viewtrips.html", map[string]interface{}{})
+	name := c.Param("name")
+	accounttype := c.Param("accounttype")
+
+	postBody, _ := json.Marshal(map[string]string{
+		"username":    name,
+		"accounttype": accounttype,
+	})
+
+	responsebody := bytes.NewBuffer(postBody)
+
+	url := "http://localhost:8001/api/V1/database/viewtrips/" + name + "/" + accounttype
+
+	resp, err := http.Post(url, "application/json", responsebody)
+
+	if err != nil {
+		log.Fatalf("An error occured %s", err)
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	sb := string(body)
+
+	var TripRecords TripList
+	tripData := strings.Split(sb, "/")
+	for i := 0; i < len(tripData); i++ {
+		log.Printf(tripData[i])
+		tripinfo := strings.Split(tripData[i], ",")
+
+		for i := 0; i < len(tripinfo); i++ {
+			log.Printf(tripinfo[i])
+		}
+
+		if i != 0 {
+			TripRecord := Trip{
+				ID:          tripinfo[0],
+				PassengerID: tripinfo[1],
+				DriverID:    tripinfo[2],
+				PickUp:      tripinfo[3],
+				DropOff:     tripinfo[4],
+				TripStatus:  tripinfo[5],
+				TripStart:   tripinfo[6],
+				TripEnd:     tripinfo[7],
+			}
+			log.Printf(TripRecord.PickUp)
+
+			TripRecords.List = append(TripRecords.List, TripRecord)
+		}
+	}
+
+	return c.Render(http.StatusOK, "viewtrips.html", map[string]interface{}{
+		"name":        name,
+		"TripRecords": TripRecords.List,
+	})
 }
 
 func checktrips(c echo.Context) error {
@@ -311,7 +382,7 @@ func main() {
 	e.GET("/homepage/:name/:accounttype", homepage)
 
 	e.GET("/booktrip/:name", booktrip)
-	e.GET("/viewtrips", viewtrips)
+	e.GET("/viewtrips/:name/:accounttype", viewtrips)
 	e.GET("/checktrips/:username", checktrips)
 
 	log.Printf("Frontend Service started")

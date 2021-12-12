@@ -58,6 +58,22 @@ type Driver struct {
 	LicenseNumber        string `json: licensenumebr`
 }
 
+type Trip struct {
+	ID          string `json: id`
+	PassengerID string `json: passengerid`
+	DriverID    string `json: driverid`
+	PickUp      string `json: pickup`
+	DropOff     string `json: dropoff`
+	TripStatus  string `json: tripstatus`
+	TripStart   string `json: tripstart`
+	TripEnd     string `json: tripend`
+}
+
+type Account struct {
+	Username    string `json: username`
+	AccountType string `json: accounttype`
+}
+
 func CreateAccount(username string, password string, accounttype string, accountstatus string) {
 
 	log.Printf("Creating new account")
@@ -559,6 +575,75 @@ func tripstatus(c echo.Context) error {
 
 }
 
+func getTrips(username string, accounttype string) []Trip {
+	TripsDb := OpenTripsDB()
+	var TripList []Trip
+
+	Query := ""
+
+	if accounttype == "Passenger" {
+		ID := getPassengerID(username)
+		Query = "SELECT * FROM GoRide_Trips.Trip WHERE PassengerID = '" + ID + "' " + "ORDER BY TripStart DESC"
+	} else if accounttype == "Driver" {
+		ID := getDriverID(username)
+		Query = "SELECT * FROM GoRide_Trips.Trip WHERE DriverID = '" + ID + "' " + "ORDER BY TripStart DESC"
+	}
+
+	rows, err := TripsDb.Query(Query)
+
+	if err != nil {
+		log.Printf(err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var TripTemp Trip
+		err := rows.Scan(&TripTemp.ID, &TripTemp.PassengerID, &TripTemp.DriverID, &TripTemp.PickUp, &TripTemp.DropOff, &TripTemp.TripStatus, &TripTemp.TripStart, &TripTemp.TripEnd)
+
+		if err != nil {
+			log.Printf(err.Error())
+		}
+		TripList = append(TripList, TripTemp)
+	}
+	return TripList
+}
+
+func viewtrips(c echo.Context) error {
+
+	log.Printf("View trips accessed")
+
+	Account := Account{}
+
+	defer c.Request().Body.Close()
+	err := json.NewDecoder(c.Request().Body).Decode(&Account)
+	log.Printf("Name retrieved: %s", Account.Username)
+	log.Printf("Accoutntype retrieved: %s", Account.AccountType)
+
+	if err != nil {
+		log.Fatalf("Failed reading the request body %s", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	} else {
+		TripRecords := getTrips(Account.Username, Account.AccountType)
+		var trips string
+
+		for i := 0; i < len(TripRecords); i++ {
+			temp := TripRecords[i].ID + "," + TripRecords[i].PassengerID + "," + TripRecords[i].DriverID + "," + TripRecords[i].PickUp + "," + TripRecords[i].DropOff + "," + TripRecords[i].TripStatus + "," + TripRecords[i].TripStart + "," + TripRecords[i].TripEnd
+			trips = trips + "/" + temp
+			log.Printf("Trips is: %s", trips)
+		}
+
+		log.Printf(trips)
+
+		return c.String(http.StatusOK, trips)
+
+		//jsonresults, _ := json.Marshal(TripRecords)
+		//log.Println(string(jsonresults))
+
+		//return c.JSON(http.StatusOK, jsonresults)
+	}
+
+}
+
 func ServeHeader(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderServer, "GoRide/1.0")
@@ -585,6 +670,7 @@ func main() {
 	g.POST("/database/createtrip/:name", createtrip)
 	g.POST("/checktriprequests", checktriprequests)
 	g.POST("/database/tripstatus/:status/:drivername", tripstatus)
+	g.POST("/database/viewtrips/:name/:accountype", viewtrips)
 
 	go func() {
 		if err := e.Start(":8001"); err != nil && err != http.ErrServerClosed {

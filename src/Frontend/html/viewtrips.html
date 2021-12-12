@@ -1,0 +1,22 @@
+<h1>Hello {{.name}}!</h1>
+
+<table>
+    <tr>
+        <th>Trip ID</th>
+        <th>Pick up</th>
+        <th>Drop Off</th>
+        <th>Trip Status</th>
+        <th>Trip Start</th>
+        <th>Trip End</th>
+    </tr>
+    {{range .TripRecords}}
+    <tr>
+        <td>{{.ID}}</td>
+        <td>{{.PickUp}}</td>
+        <td>{{.DropOff}}</td>
+        <td>{{.TripStatus}}</td>
+        <td>{{.TripStart}}</td>
+        <td>{{.TripEnd}}</td>
+    </tr>>
+    {{end}}
+</table>
