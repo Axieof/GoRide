@@ -60,3 +60,5 @@ Database setup scripts can be found in setup/scripts/GoRide_DB_Initialization.sq
 Open the file in your MySQL Workbench and run it
 
 ## Design & Architecture
+
+![GoRide Architecture](https://github.com/Axieof/GoRide/blob/master/setup/img/GoRide_Architecture_Diagram.PNG)
